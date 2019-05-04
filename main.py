@@ -13,8 +13,9 @@ def main():
     args = sys.argv
     if args[1] == 'create':
         create.Create().create(args)
+    if args[1] == 'createdb':
+        create.Create().database(args)
 
 
 if __name__ == '__main__':
-    print(sys.argv)
     main()

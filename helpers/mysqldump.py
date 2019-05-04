@@ -41,6 +41,7 @@ __copyright__ = "Copyright (c) 2008-2014 Hive Solutions Lda. & Firesphere Code C
 __license__ = "GNU General Public License (GPL), Version 3"
 """ The license for the module """
 
+import datetime
 import getopt
 import gzip
 import os
@@ -80,7 +81,8 @@ CONVERSION = {
     int: lambda v: str(v),
     legacy.LONG: lambda v: str(v),
     float: lambda v: str(v),
-    type(None): lambda v: "null"
+    datetime.datetime: lambda v: "'%s'" % v,
+    type(None): lambda v: "null",
 }
 """ Conversion map to be used to convert python types
 into mysql string value types """
@@ -98,7 +100,7 @@ be sent to the standard output / error """
 
 class Exporter(object):
 
-    def __init__(self, database, host=None, user=None, password=None, file_path=None, compression='zip'):
+    def __init__(self, database, host=None, user=None, password=None, file_path=None, compression='gz'):
         self.database = database
         self.host = host or "127.0.0.1"
         self.user = user or "root"
@@ -132,7 +134,7 @@ class Exporter(object):
 
         try:
             self.dump_schema()
-            # self.dump_tables()
+            self.dump_tables()
             self.compress(self.file_path, self.compression)
         finally:
             shutil.rmtree(self.base_path, ignore_errors=True)
@@ -144,6 +146,11 @@ class Exporter(object):
     def dump_schema(self):
         file_path = os.path.join(self.base_path, "database.sql")
         file = open(file_path, "ab")
+        self._write_file(file, "/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;\n\
+/*!40101 SET NAMES utf8 */;\n\
+/*!50503 SET NAMES utf8mb4 */;\n\
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;\n\
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;\n\n")
         try:
             self._dump_schema(file)
         finally:
@@ -177,30 +184,44 @@ class Exporter(object):
                      WHERE table_schema = '%s' AND table_name = '%s'" %
                 (self.database, table)
             )
-
+            collation = self.fetch_o(
+                "SELECT `ENGINE`, `TABLE_COLLATION`\
+                    FROM `information_schema.TABLES`\
+                    WHERE `table_schema` = '%s' AND table_name = '%s'" %
+                (self.database, table))
+            charset = collation[1].split('_')
             keys = [column[0] for column in columns if column[2] == "PRI"]
             keys_mul = [column[0] for column in columns if column[2] == "MUL"]
             keys_s = ", ".join(keys)
-            self._write_file(file, "CREATE TABLE IF NOT EXISTS %s (\n" % table)
+
+            self._write_file(file, "/*!40000 ALTER TABLE `%s` DISABLE KEYS */;\n\
+/*!40000 ALTER TABLE `%s` ENABLE KEYS */;\n\n" % (table, table))
+            self._write_file(file, "CREATE TABLE IF NOT EXISTS `%s` (\n" % table)
             for column in columns:
                 column = list(column)
                 default = column[3]
                 if column[3] is None:
                     default = 'NULL'
 
-                column_s = "`" + column[0] + "` " + column[1]
+                column_string = "`" + column[0] + "` " + column[1]
                 if column[4] in ['auto_increment']:
-                    column_s += ' NOT NULL AUTO_INCREMENT'
+                    column_string += ' NOT NULL AUTO_INCREMENT'
                 elif column[5] is not None:
-                    column_s += ' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'
+                    column_string += ' CHARACTER SET %s COLLATE %s' % (charset[0], collation[1])
                 if column[3] is not None and column[4] != 'auto_increment':
-                    column_s += " DEFAULT '" + default.replace('\\', '\\\\') + "'"
-                self._write_file(file, "    %s,\n" % column_s)
+                    column_string += " DEFAULT '" + default.replace('\\', '\\\\') + "'"
+                self._write_file(file, "    %s,\n" % column_string)
 
             self._write_file(file, "    PRIMARY KEY(%s)" % keys_s)
             for mulkey in keys_mul:
                 self._write_file(file, ",\n    KEY `%s` (`%s`)" % (mulkey, mulkey))
-            self._write_file(file, "\n);\n")
+            self._write_file(file, "\n)")
+            if collation[0] is not None:
+                self._write_file(file,
+                                 " ENGINE=%s DEFAULT CHARSET=%s COLLATE=%s" %
+                                 (collation[0], charset[0], collation[1])
+                                 )
+            self._write_file(file, ";\n\n")
 
             index += 1
 
@@ -239,7 +260,12 @@ class Exporter(object):
             file_path = os.path.join(self.base_path, "database.sql")
             file = open(file_path, "ab")
             try:
+                self._write_file(file, "TRUNCATE `" + table + "`\n")
+                self._write_file(file, "/*!40000 ALTER TABLE `" + table + "` DISABLE KEYS */;\n")
+                self._write_file(file, "INSERT INTO `%s` (%s) VALUES (" % (table, columns_s))
                 self.dump_data(file, data)
+                self._write_file(file, ")")
+                self._write_file(file, "\n")
             finally:
                 file.close()
 
@@ -252,6 +278,7 @@ class Exporter(object):
 
     def dump_data(self, file, data):
         for item in data:
+            self._write_file(file, "(")
             is_first = True
             for value in item:
                 if is_first:
@@ -262,15 +289,15 @@ class Exporter(object):
                 value_f = CONVERSION.get(value_t, str)
                 value_s = value_f(value)
                 self._write_file(file, value_s)
-            self._write_file(file, "\n")
+            self._write_file(file, "),\n")
+        self._write_file(file, "\n")
 
-    def compress(self, target=None, compression='zip'):
-        target = target or self.file_path
-        print_m("Compressing database information into '%s'..." % target)
+    def compress(self, target=None, compression='gz'):
+        print_m("Compressing database information into database.sql.gz...")
         initial = time.time()
 
         if compression == 'zip':
-            zip = zipfile.ZipFile(target + '.zip', "w", zipfile.ZIP_DEFLATED)
+            zip = zipfile.ZipFile('database.zip', "w", zipfile.ZIP_DEFLATED)
             try:
                 root_l = len(self.base_path) + 1
                 for base, _dirs, files in os.walk(self.base_path):
@@ -279,10 +306,13 @@ class Exporter(object):
                         zip.write(path, path[root_l:])
             finally:
                 zip.close()
-
         # gzip comrpession support
-        if compression == 'gz':
-            gz = gzip.open(target, 'wb')
+        elif compression == 'gz':
+            for base, _dirs, files in os.walk(self.base_path):
+                for file in files:
+                    with open(os.path.join(base, file), 'rb') as inputdata:
+                        with gzip.open('database.sql.gz', 'w') as output:
+                            shutil.copyfileobj(inputdata, output)
 
         final = time.time()
         delta = final - initial
@@ -376,7 +406,7 @@ def main():
     ])
     for option, argument in _options:
         if option in ("-h", "--help"):
-            help();
+            help()
             exit(0)
         elif option in ("-q", "--quiet"):
             QUIET = True
