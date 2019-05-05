@@ -106,12 +106,12 @@ be sent to the standard output / error """
 
 class Exporter(object):
 
-    def __init__(self, database, host=None, user=None, password=None, file_path=None, compression='gz'):
+    def __init__(self, database, host=None, user=None, password=None, compression='gz'):
         self.database = database
         self.host = host or "127.0.0.1"
         self.user = user or "root"
         self.password = password or ""
-        self.file_path = file_path or "export.sql"
+        self.file_path = "database.sql"
         self.base_path = "export"
         self.connection = None
         self.compression = compression
@@ -376,18 +376,19 @@ def reset_line():
 
 
 def print_message(message, newline=True):
+    # @todo make this a generic service instead of MySQL Dump
     if QUIET: return
     sys.stdout.write(message)
     newline and sys.stdout.write("\n")
 
 
-def dump(database, host=None, user=None, password=None, file_path=None):
+def dump(database, host=None, user=None, password=None, compression='gz'):
     exporter = Exporter(
         database,
         host=host,
         user=user,
         password=password,
-        file_path=file_path
+        compression=compression
     )
     exporter.dump()
 
