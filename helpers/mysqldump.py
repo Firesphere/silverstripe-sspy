@@ -131,8 +131,8 @@ class Exporter(object):
         self.connect()
 
     def dump(self):
-        print_m("------------------------------------------------------------------------")
-        print_m("Dumping '%s@%s' database into '%s'" % (self.database, self.host, self.base_path))
+        print_message("------------------------------------------------------------------------")
+        print_message("Dumping '%s@%s' database into '%s'" % (self.database, self.host, self.base_path))
         initial = time.time()
 
         self.connect()
@@ -147,7 +147,7 @@ class Exporter(object):
 
         final = time.time()
         delta = final - initial
-        print_m("Finished dumping of database in %d seconds" % delta)
+        print_message("Finished dumping of database in %d seconds" % delta)
 
     def dump_schema(self):
         file_path = os.path.join(self.base_path, "database.sql")
@@ -167,10 +167,10 @@ class Exporter(object):
         file.write(data)
 
     def _dump_schema(self, file):
-        print_m("Dumping the table schema into schema file...")
+        print_message("Dumping the table schema into schema file...")
         initial = time.time()
 
-        tables = self.fetch_s(
+        tables = self.fetch_single(
             "SELECT `table_name` FROM `information_schema`.`tables` WHERE `table_schema` = '%s'" % self.database
         )
 
@@ -182,15 +182,15 @@ class Exporter(object):
 
         for table in tables:
             reset_line()
-            print_m("\r[%d/%d] - %s" % (index, tables_l, table), False)
+            print_message("\r[%d/%d] - %s" % (index, tables_l, table), False)
 
-            columns = self.fetch_a(
+            columns = self.fetch_all(
                 "SELECT `column_name`, `column_type`, `column_key`, `column_default`, `extra`, `character_set_name`\
                      FROM `information_schema`.`columns`\
                      WHERE `table_schema` = '%s' AND `table_name` = '%s'" %
                 (self.database, table)
             )
-            collation = self.fetch_o(
+            collation = self.fetch_one(
                 "SELECT `ENGINE`, `TABLE_COLLATION`\
                     FROM `information_schema`.`TABLES`\
                     WHERE `table_schema` = '%s' AND `table_name` = '%s'" %
@@ -242,13 +242,13 @@ class Exporter(object):
         final = time.time()
         delta = final - initial
         reset_line()
-        print_m("\rDumped table schema in %d seconds" % delta)
+        print_message("\rDumped table schema in %d seconds" % delta)
 
     def dump_tables(self):
-        print_m("Dumping the table data into data files...")
+        print_message("Dumping the table data into data files...")
         initial = time.time()
 
-        tables = self.fetch_s(
+        tables = self.fetch_single(
             "SELECT table_name FROM information_schema.tables WHERE table_schema = '%s'" % self.database
         )
 
@@ -262,14 +262,14 @@ class Exporter(object):
 
         for table in tables:
             reset_line()
-            print_m("\r[%d/%d] - %s" % (index, tables_l, table), False)
+            print_message("\r[%d/%d] - %s" % (index, tables_l, table), False)
 
-            columns = self.fetch_s(
+            columns = self.fetch_single(
                 "SELECT column_name FROM information_schema.columns WHERE table_schema = '%s' AND table_name = '%s'" %
                 (self.database, table)
             )
             columns_s = "`, `".join(columns)
-            data = self.fetch_a(
+            data = self.fetch_all(
                 "SELECT `%s` FROM `%s`" % (columns_s, table)
             )
 
@@ -297,7 +297,7 @@ class Exporter(object):
         final = time.time()
         delta = final - initial
         reset_line()
-        print_m("\r\nDumped table data in %d seconds" % delta)
+        print_message("\r\nDumped table data in %d seconds" % delta)
 
     def dump_data(self, file, data):
         for item in data:
@@ -319,7 +319,7 @@ class Exporter(object):
         self._write_file(file, ";\n\n")
 
     def compress(self, target=None, compression='gz'):
-        print_m("Compressing database information into database.sql.%s..." % compression)
+        print_message("Compressing database information into database.sql.%s..." % compression)
         initial = time.time()
 
         if compression == 'zip':
@@ -342,9 +342,9 @@ class Exporter(object):
 
         final = time.time()
         delta = final - initial
-        print_m("Compressed database information in %d seconds" % delta)
+        print_message("Compressed database information in %d seconds" % delta)
 
-    def fetch_o(self, query):
+    def fetch_one(self, query):
         self.ensure()
         cursor = self.connection.cursor()
         cursor.execute(query)
@@ -354,7 +354,7 @@ class Exporter(object):
             cursor.close()
         return data
 
-    def fetch_a(self, query):
+    def fetch_all(self, query):
         self.ensure()
         cursor = self.connection.cursor()
         cursor.execute(query)
@@ -364,18 +364,18 @@ class Exporter(object):
             cursor.close()
         return data
 
-    def fetch_s(self, query):
-        data = self.fetch_a(query)
+    def fetch_single(self, query):
+        data = self.fetch_all(query)
         elements = [item[0] for item in data]
         return elements
 
 
 def reset_line():
     line = "\r" + (" " * 78)
-    print_m(line, False)
+    print_message(line, False)
 
 
-def print_m(message, newline=True):
+def print_message(message, newline=True):
     if QUIET: return
     sys.stdout.write(message)
     newline and sys.stdout.write("\n")
@@ -395,13 +395,13 @@ def dump(database, host=None, user=None, password=None, file_path=None):
 def information():
     # print the branding information text and then displays
     # the python specific information in the screen
-    print_m(BRANDING_TEXT % (VERSION, RELEASE, BUILD, RELEASE_DATE))
-    print_m(VERSION_PRE_TEXT + sys.version)
+    print_message(BRANDING_TEXT % (VERSION, RELEASE, BUILD, RELEASE_DATE))
+    print_message(VERSION_PRE_TEXT + sys.version)
 
 
 def help():
-    print_m("Usage:")
-    print_m("mysql_dump [--quiet] [--help] [--host=] [--user=] [--password=]\n\
+    print_message("Usage:")
+    print_message("mysql_dump [--quiet] [--help] [--host=] [--user=] [--password=]\n\
     [--database=] [--file=]")
 
 
