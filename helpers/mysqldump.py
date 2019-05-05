@@ -4,6 +4,8 @@
 # MySQL Dump System
 # Copyright (C) 2008-2014 Hive Solutions Lda.
 #
+# Improved for SilverStripe SSPAK dumps by Simon `Firesphere` Erkelens
+#
 # This file is part of MySQL Dump System.
 #
 # MySQL Dump System is free software: you can redistribute it and/or modify
@@ -26,7 +28,7 @@
 __author__ = "João Magalhães <joamag@hive.pt>, Simon `Firesphere` Erkelens <github@casa-laguna.net>"
 """ The author(s) of the module """
 
-__version__ = "2.0.0"
+__version__ = "3.0.0"
 """ The version of the module """
 
 __revision__ = "$LastChangedRevision$"
@@ -53,14 +55,14 @@ import zipfile
 import legacy
 import pymysql
 
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 """ The current version value for the mysql dump executable """
 
-RELEASE = "100"
+RELEASE = "150"
 """ The release value, should be an internal value related
 with the build process """
 
-BUILD = "2"
+BUILD = "3"
 """ The build value, representing the sub release value
 existent in the build process """
 
@@ -70,6 +72,10 @@ RELEASE_DATE = "2019"
 BRANDING_TEXT = "MySQL Dump System %s (Hive Solutions Lda. r%s:%s %s)"
 """ The branding text value the template based values
 should be defined as constants """
+
+SSPAK_TEXT = "Python SSPAK by Simon `Firesphere` Erkelens, improved version for SilverStripe. " \
+             "Original by:" + BRANDING_TEXT
+""" SSPAK release"""
 
 VERSION_PRE_TEXT = "Python 3.x"
 """ The version pre text value, that appears before the printing

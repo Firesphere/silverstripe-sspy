@@ -18,4 +18,4 @@ class Create:
 
     @staticmethod
     def assets(args):
-        path = args[1]
+        path = args[3]
