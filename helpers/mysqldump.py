@@ -165,7 +165,7 @@ class Exporter(object):
         initial = time.time()
 
         tables = self.fetch_s(
-            "SELECT table_name FROM information_schema.tables WHERE table_schema = '%s'" % self.database
+            "SELECT `table_name` FROM `information_schema`.`tables` WHERE `table_schema` = '%s'" % self.database
         )
 
         # retrieves the current tables length (amount of tables)
@@ -179,24 +179,23 @@ class Exporter(object):
             print_m("\r[%d/%d] - %s" % (index, tables_l, table), False)
 
             columns = self.fetch_a(
-                "SELECT column_name, column_type, column_key, column_default, extra, character_set_name\
-                     FROM information_schema.columns\
-                     WHERE table_schema = '%s' AND table_name = '%s'" %
+                "SELECT `column_name`, `column_type`, `column_key`, `column_default`, `extra`, `character_set_name`\
+                     FROM `information_schema`.`columns`\
+                     WHERE `table_schema` = '%s' AND `table_name` = '%s'" %
                 (self.database, table)
             )
             collation = self.fetch_o(
                 "SELECT `ENGINE`, `TABLE_COLLATION`\
-                    FROM `information_schema.TABLES`\
-                    WHERE `table_schema` = '%s' AND table_name = '%s'" %
+                    FROM `information_schema`.`TABLES`\
+                    WHERE `table_schema` = '%s' AND `table_name` = '%s'" %
                 (self.database, table))
             charset = collation[1].split('_')
             keys = [column[0] for column in columns if column[2] == "PRI"]
             keys_mul = [column[0] for column in columns if column[2] == "MUL"]
             keys_s = ", ".join(keys)
 
-            self._write_file(file, "/*!40000 ALTER TABLE `%s` DISABLE KEYS */;\n\
-/*!40000 ALTER TABLE `%s` ENABLE KEYS */;\n\n" % (table, table))
             self._write_file(file, "CREATE TABLE IF NOT EXISTS `%s` (\n" % table)
+            # @todo clean this up to be more readable
             for column in columns:
                 column = list(column)
                 default = column[3]
@@ -210,18 +209,27 @@ class Exporter(object):
                     column_string += ' CHARACTER SET %s COLLATE %s' % (charset[0], collation[1])
                 if column[3] is not None and column[4] != 'auto_increment':
                     column_string += " DEFAULT '" + default.replace('\\', '\\\\') + "'"
-                self._write_file(file, "    %s,\n" % column_string)
+                self._write_file(
+                    file,
+                    "    %s,\n" % column_string
+                )
 
             self._write_file(file, "    PRIMARY KEY(%s)" % keys_s)
             for mulkey in keys_mul:
-                self._write_file(file, ",\n    KEY `%s` (`%s`)" % (mulkey, mulkey))
+                self._write_file(
+                    file,
+                    ",\n    KEY `%s` (`%s`)" % (mulkey, mulkey)
+                )
             self._write_file(file, "\n)")
             if collation[0] is not None:
-                self._write_file(file,
-                                 " ENGINE=%s DEFAULT CHARSET=%s COLLATE=%s" %
-                                 (collation[0], charset[0], collation[1])
-                                 )
+                self._write_file(
+                    file,
+                    " ENGINE=%s DEFAULT CHARSET=%s COLLATE=%s" %
+                    (collation[0], charset[0], collation[1])
+                )
             self._write_file(file, ";\n\n")
+            self._write_file(file, "/*!40000 ALTER TABLE `%s` DISABLE KEYS */;\n" % table)
+            self._write_file(file, "/*!40000 ALTER TABLE `%s` ENABLE KEYS */;\n\n" % table)
 
             index += 1
 
@@ -243,6 +251,8 @@ class Exporter(object):
         # completion for the current process
         tables_l = len(tables)
         index = 1
+        file_path = os.path.join(self.base_path, "database.sql")
+        file = open(file_path, "ab")
 
         for table in tables:
             reset_line()
@@ -252,29 +262,36 @@ class Exporter(object):
                 "SELECT column_name FROM information_schema.columns WHERE table_schema = '%s' AND table_name = '%s'" %
                 (self.database, table)
             )
-            columns_s = ", ".join(columns)
+            columns_s = "`, `".join(columns)
             data = self.fetch_a(
-                "SELECT %s FROM `%s`" % (columns_s, table)
+                "SELECT `%s` FROM `%s`" % (columns_s, table)
             )
 
-            file_path = os.path.join(self.base_path, "database.sql")
-            file = open(file_path, "ab")
-            try:
-                self._write_file(file, "TRUNCATE `" + table + "`\n")
-                self._write_file(file, "/*!40000 ALTER TABLE `" + table + "` DISABLE KEYS */;\n")
-                self._write_file(file, "INSERT INTO `%s` (%s) VALUES (" % (table, columns_s))
-                self.dump_data(file, data)
-                self._write_file(file, ")")
-                self._write_file(file, "\n")
-            finally:
-                file.close()
+            self._write_file(file, "DELETE FROM `%s`;\n" % table)
+            if len(data):
+                self._write_file(file, "/*!40000 ALTER TABLE `%s` DISABLE KEYS */;\n" % table)
+                self._write_file(file, "/*!40000 ALTER TABLE `%s` ENABLE KEYS */;\n\n" % table)
+                # Split in to chunks of 1000 items per chunk to not crash the database
+                chunks = [data[x:x + 1000] for x in range(0, len(data), 1000)]
+                for chunk in chunks:
+                    self._write_file(file, "INSERT INTO `%s` (`%s`) VALUES " % (table, columns_s))
+                    self.dump_data(file, chunk)
 
             index += 1
 
+        # Reset the SQL Modes to what it's supposed to be :)
+        self._write_file(file, "/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;\n")
+        self._write_file(
+            file,
+            "/*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;\n"
+        )
+        self._write_file(file, "/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;")
+
+        file.close()
         final = time.time()
         delta = final - initial
         reset_line()
-        print_m("\rDumped table data in %d seconds" % delta)
+        print_m("\r\nDumped table data in %d seconds" % delta)
 
     def dump_data(self, file, data):
         for item in data:
@@ -290,14 +307,17 @@ class Exporter(object):
                 value_s = value_f(value)
                 self._write_file(file, value_s)
             self._write_file(file, "),\n")
-        self._write_file(file, "\n")
+        # Trim off the final comma and close the command. SEEK_END is most efficient
+        file.seek(-2, os.SEEK_END)
+        file.truncate()
+        self._write_file(file, ";\n\n")
 
     def compress(self, target=None, compression='gz'):
-        print_m("Compressing database information into database.sql.gz...")
+        print_m("Compressing database information into database.sql.%s..." % compression)
         initial = time.time()
 
         if compression == 'zip':
-            zip = zipfile.ZipFile('database.zip', "w", zipfile.ZIP_DEFLATED)
+            zip = zipfile.ZipFile('database.sql.zip', "w", zipfile.ZIP_DEFLATED)
             try:
                 root_l = len(self.base_path) + 1
                 for base, _dirs, files in os.walk(self.base_path):
@@ -380,7 +400,7 @@ def help():
 
 
 def _escape(value):
-    return value.decode().replace("'", "''")
+    return pymysql.escape_string(value.decode())
 
 
 def main():
