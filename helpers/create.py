@@ -1,7 +1,9 @@
 import os
 import tarfile
-from helpers import mysqldump
 import time
+
+from helpers import mysqldump
+
 
 class Create:
     @staticmethod
@@ -30,7 +32,7 @@ class Create:
         # Add all files in working dir
         tar.add('.')
         os.chdir(basedir)
+        tar.close()
         final = time.time()
         delta = final - initial
         mysqldump.print_message("Finished creating assets tar in %d seconds" % delta)
-
