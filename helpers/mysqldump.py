@@ -417,7 +417,6 @@ def main():
     host = "127.0.0.1"
     user = ""
     password = ""
-    file_path = "export.zip"
 
     # parses the various options from the command line and then
     # iterates over the map of them top set the appropriate values
@@ -445,8 +444,6 @@ def main():
             user = argument
         elif option in ("-p", "--password"):
             password = argument
-        elif option in ("-f", "--file"):
-            file_path = argument
 
     information()
     dump(
@@ -454,7 +451,7 @@ def main():
         host=host,
         user=user,
         password=password,
-        file_path=file_path
+        compression='gz'
     )
 
 

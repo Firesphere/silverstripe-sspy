@@ -5,14 +5,14 @@ import time
 
 class Create:
     @staticmethod
-    def create(args):
-        Create.database(args)
+    def create():
+        Create.database()
         Create.assets()
 
     @staticmethod
-    def database(args):
+    def database():
         mysqldump.dump(os.getenv('SS_DATABASE_NAME'), os.getenv('SS_DATABASE_SERVER'),
-                       os.getenv('SS_DATABASE_USERNAME'), os.getenv('SS_DATABASE_PASSWORD'), 'database.sql')
+                       os.getenv('SS_DATABASE_USERNAME'), os.getenv('SS_DATABASE_PASSWORD'))
 
     @staticmethod
     def assets():
@@ -29,6 +29,7 @@ class Create:
         mysqldump.print_message("Adding files from '%s' to assets tar" % workingdir)
         # Add all files in working dir
         tar.add('.')
+        os.chdir(basedir)
         final = time.time()
         delta = final - initial
         mysqldump.print_message("Finished creating assets tar in %d seconds" % delta)
