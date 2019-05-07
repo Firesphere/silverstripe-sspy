@@ -6,18 +6,16 @@ from helpers import mysqldump
 
 
 class Create:
-    @staticmethod
-    def create():
-        Create.database()
-        Create.assets()
 
-    @staticmethod
-    def database():
+    def create(self):
+        self.database()
+        self.assets()
+
+    def database(self):
         mysqldump.dump(os.getenv('SS_DATABASE_NAME'), os.getenv('SS_DATABASE_SERVER'),
                        os.getenv('SS_DATABASE_USERNAME'), os.getenv('SS_DATABASE_PASSWORD'))
 
-    @staticmethod
-    def assets():
+    def assets(self):
         initial = time.time()
         mysqldump.print_message("------------------------------------------------------------------------")
         basedir = os.getcwd()

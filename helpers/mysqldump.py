@@ -141,7 +141,7 @@ class Exporter(object):
         try:
             self.dump_schema()
             self.dump_tables()
-            self.compress(self.file_path, self.compression)
+            self.compress(self.compression)
         finally:
             shutil.rmtree(self.base_path, ignore_errors=True)
 
@@ -318,7 +318,7 @@ class Exporter(object):
         file.truncate()
         self._write_file(file, ";\n\n")
 
-    def compress(self, target=None, compression='gz'):
+    def compress(self, compression='gz'):
         print_message("Compressing database information into database.sql.%s..." % compression)
         initial = time.time()
 
