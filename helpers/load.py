@@ -7,10 +7,12 @@ import pymysql
 
 class Load:
 
-    def load(self, sspak):
-        with tarfile.open(sspak, 'r') as tar:
-            tar.extract('database.sql.gz')
-            self.database()
+    def load(self, sspak, basepath):
+        self.extract(sspak)
+        self.database()
+        if os.path.isfile(os.path.join(basepath, 'assets.tar.gz')):
+            self.assets(basepath)
+
 
     def database(self):
         conn = pymysql.connect(
@@ -37,3 +39,17 @@ class Load:
                             print()
                             # do nothing, continue
                     conn.commit()
+
+    def assets(self, basedir):
+        workingdir = basedir
+        # If the public folder exist, use that one
+        if os.path.isdir('public'):
+            workingdir = os.path.join(workingdir, 'public')
+        workingdir = os.path.join(workingdir, 'assets')
+        # write gzip
+        with tarfile.open("assets.tar.gz", "w:gz") as tar:
+            tar.extractall(path=os.path.join(workingdir, "assets/"))
+
+    def extract(self, file):
+        with tarfile.open(file, 'r') as tar:
+            tar.extractall()

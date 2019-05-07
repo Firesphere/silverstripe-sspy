@@ -8,6 +8,7 @@ import dotenv
 
 from helpers.create import Create
 from helpers.load import Load
+from helpers.files import Files
 
 env_path = Path(os.getcwd()) / '.env'
 dotenv.load_dotenv(dotenv_path=env_path)
@@ -26,45 +27,27 @@ def main():
         file = 'package.sspak'
     if args[1] == 'create':
         Create().create()
+        Create().sspak(file, basepath)
     if args[1] == 'createdb':
         Create().database()
+        Create().sspak(file, basepath)
     if args[1] == 'createassets':
         Create().assets()
+        Create().sspak(file, basepath)
     if args[1] == 'load':
-        Load().load('package.sspak')
-
-    sspak(file, basepath)
+        Load().load(file, basepath)
+    if args[1] == 'extract':
+        Load().extract(file)
 
     print('Cleaning up, if this takes a long time, feel free to CTRL-C this process')
     deleted = False
     while deleted is False:
-        deleted = delete_sources(basepath)
+        deleted = Files().delete_sources(basepath)
 
     end = time.time()
     delta = end - start
     print('------------------------------------------------------------------------')
     print("Finished sspak operation in %d seconds" % delta)
-
-
-def sspak(file, basepath):
-    print("------------------------------------------------------------------------")
-    print("Generating %s" % file)
-    with tarfile.open(file, "w") as tar:
-        if os.path.isfile(os.path.join(basepath, 'database.sql.gz')):
-            tar.add('database.sql.gz')
-        if os.path.isfile(os.path.join(basepath, 'assets.tar.gz')):
-            tar.add('assets.tar.gz')
-
-
-def delete_sources(basepath):
-    try:
-        if os.path.isfile(os.path.join(basepath, 'assets.tar.gz')):
-            Path(os.path.join(basepath, 'assets.tar.gz')).unlink()
-        if os.path.isfile(os.path.join(basepath, 'database.sql.gz')):
-            Path(os.path.join(basepath, 'database.sql.gz')).unlink()
-        return True
-    except PermissionError:
-        return False
 
 
 if __name__ == '__main__':
