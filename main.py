@@ -45,12 +45,11 @@ def main():
 
 def sspak(file, basepath):
     print("------------------------------------------------------------------------")
-    tar = tarfile.open(file, "w")
-    if os.path.isfile(os.path.join(basepath, 'database.sql.gz')):
-        tar.add('database.sql.gz')
-    if os.path.isfile(os.path.join(basepath, 'assets.tar.gz')):
-        tar.add('assets.tar.gz')
-    tar.close()
+    with tarfile.open(file, "w") as tar:
+        if os.path.isfile(os.path.join(basepath, 'database.sql.gz')):
+            tar.add('database.sql.gz')
+        if os.path.isfile(os.path.join(basepath, 'assets.tar.gz')):
+            tar.add('assets.tar.gz')
 
 
 def delete_sources(basepath):
