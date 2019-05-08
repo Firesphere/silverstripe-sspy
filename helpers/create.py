@@ -28,7 +28,7 @@ class Create:
         # write gzip
         with tarfile.open(os.path.join(basedir, "assets.tar.gz"), "w:gz") as tar:
             os.chdir(workingdir)
-            mysqldump.print_message("Adding files from '%s' to assets tar" % workingdir)
+            mysqldump.print_message("Adding files from '%s' to assets tar. This might take a while" % workingdir)
             # Add all files in working dir
             tar.add('.')
             # Go back to base or things will break
