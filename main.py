@@ -10,8 +10,9 @@ from helpers.create import Create
 from helpers.files import Files
 from helpers.load import Load
 
-env_path = Path(os.getcwd()) / '.env'
-dotenv.load_dotenv(dotenv_path=env_path)
+if os.path.isfile(Path(os.getcwd()) / '.env'):
+    env_path = Path(os.getcwd()) / '.env'
+    dotenv.load_dotenv(dotenv_path=env_path)
 
 
 def main(arg, type, opts):

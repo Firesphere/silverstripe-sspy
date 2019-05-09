@@ -10,7 +10,6 @@ class Create:
     def create(self):
         self.database()
         self.assets()
-        self.sspak()
 
     def database(self):
         mysqldump.dump(os.getenv('SS_DATABASE_NAME'), os.getenv('SS_DATABASE_SERVER'),
