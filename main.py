@@ -30,13 +30,11 @@ def main(arg, type, opts):
     if arg == 'create':
         if type == 'db':
             Create().database()
-            Create().sspak(file, basepath)
         elif type == 'assets':
             Create().assets()
-            Create().sspak(file, basepath)
         else:
             Create().create()
-            Create().sspak(file, basepath)
+        Create().sspak(file, basepath)
     if arg == 'load':
         Load().load(file, basepath)
     if arg == 'extract':
