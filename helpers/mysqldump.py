@@ -142,7 +142,7 @@ class Exporter(object):
         try:
             self.dump_schema()
             self.dump_tables()
-            self.compress(self.compression)
+            self.compress(self.file_path, self.compression)
         finally:
             shutil.rmtree(self.temp_path, ignore_errors=True)
 
@@ -327,7 +327,7 @@ class Exporter(object):
 
         for base, _dirs, files in os.walk(self.temp_path):
             for file in files:
-                # gzip comrpession support
+                # gzip compression support
                 if compression == 'gz':
                     with open(os.path.join(base, file), 'rb') as inputdata:
                         with gzip.open(target, 'w') as output:

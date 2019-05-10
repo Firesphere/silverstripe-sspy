@@ -61,7 +61,7 @@ def display_help():
 if __name__ == '__main__':
     optargs = sys.argv[2:]
     action_type = None
-    if len(optargs) is 0:
+    if len(sys.argv) < 2:
         print("Not enough arguments given")
         display_help()
         exit(255)

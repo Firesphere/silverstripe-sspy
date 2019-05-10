@@ -10,8 +10,7 @@ class Load:
     def load(self, sspak, basepath):
         self.extract(sspak)
         self.database()
-        if os.path.isfile(os.path.join(basepath, 'assets.tar.gz')):
-            self.assets(basepath)
+        self.assets(basepath)
 
 
     def database(self):
