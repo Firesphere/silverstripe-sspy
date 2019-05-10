@@ -15,22 +15,22 @@ if os.path.isfile(Path(os.getcwd()) / '.env'):
     dotenv.load_dotenv(dotenv_path=env_path)
 
 
-def main(arg, type, opts):
+def main(arg, action, options):
     print(arg)
     start = time.time()
     basepath = os.getcwd()
     # @todo use TarGZStream to stream directly in to the tarfile, omitting the need for removing the files
     file = 'package.sspak'
-    for (ar, f) in opts:
+    for (ar, f) in options:
         if ar in ('-f', '--file'):
             file = f
     # Make sure the filename ends with `.sspak`
     if '.sspak' not in file:
         file += '.sspak'
     if arg == 'create':
-        if type == 'db':
+        if action == 'db':
             Create().database()
-        elif type == 'assets':
+        elif action == 'assets':
             Create().assets()
         else:
             Create().create()
@@ -52,12 +52,22 @@ def main(arg, type, opts):
     print("Finished sspak operation in %d seconds" % delta)
 
 
+def display_help():
+    print("Usage:\n"
+          "sspy [create|load|extract] (db|assets) --file=my.sspak --db=mydb.tar.gz --assets=myassets.tar.gz\n"
+          "the db and assets commands are optional.")
+
+
 if __name__ == '__main__':
     optargs = sys.argv[2:]
-    type = None
+    action_type = None
+    if len(optargs) is 0:
+        print("Not enough arguments given")
+        display_help()
+        exit(255)
     if sys.argv[2] in ['db', 'assets'] and sys.argv[1] == 'create':
         optargs = sys.argv[3:]
-        type = sys.argv[2]
+        action_type = sys.argv[2]
     opts, args = getopt.getopt(optargs, "d:a:f:", ['db=', 'assets=', 'file='])
 
-    main(sys.argv[1], type, opts)
+    main(sys.argv[1], action_type, opts)
