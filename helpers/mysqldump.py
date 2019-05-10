@@ -281,11 +281,10 @@ class Exporter(object):
                 self._write_file(file, "/*!40000 ALTER TABLE `%s` DISABLE KEYS */;\n" % table)
                 self._write_file(file, "/*!40000 ALTER TABLE `%s` ENABLE KEYS */;\n\n" % table)
                 # Split in to chunks of 100 items per chunk to not crash the database
-                chunks = [data[x:x + 100] for x in range(0, len(data), 100)]
+                chunks = [data[x:x + 1024] for x in range(0, len(data), 1024)]
                 for chunk in chunks:
                     self._write_file(file, "INSERT INTO `%s` (`%s`) VALUES " % (table, columns_s))
                     self.dump_data(file, chunk)
-
             index += 1
 
         # Reset the SQL Modes to what it's supposed to be :)
