@@ -13,7 +13,7 @@ class Create:
 
     def database(self):
         mysqldump.dump(os.getenv('SS_DATABASE_NAME'), os.getenv('SS_DATABASE_SERVER'),
-                       os.getenv('SS_DATABASE_USERNAME'), os.getenv('SS_DATABASE_PASSWORD'))
+                       os.getenv('SS_DATABASE_USERNAME'), os.getenv('SS_DATABASE_PASSWORD'), 'database.sql.gz', 'gz')
 
     def assets(self):
         initial = time.time()
@@ -38,8 +38,8 @@ class Create:
         mysqldump.print_message("Finished creating assets tar in %d seconds" % delta)
 
     def sspak(self, file, basepath):
-        print("------------------------------------------------------------------------")
-        print("Generating %s" % file)
+        mysqldump.print_message("------------------------------------------------------------------------")
+        mysqldump.print_message("Generating %s" % file)
         with tarfile.open(file, "w") as tar:
             if os.path.isfile(os.path.join(basepath, 'database.sql.gz')):
                 tar.add('database.sql.gz')

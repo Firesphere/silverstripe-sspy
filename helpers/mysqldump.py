@@ -106,13 +106,13 @@ be sent to the standard output / error """
 
 class Exporter(object):
 
-    def __init__(self, database, host=None, user=None, password=None, compression='gz'):
+    def __init__(self, database, host=None, user=None, password=None, file_path=None, compression='gz'):
         self.database = database
         self.host = host or "127.0.0.1"
         self.user = user or "root"
         self.password = password or ""
-        self.file_path = "database.sql"
-        self.base_path = "export"
+        self.file_path = file_path or "export.sql.%s" % compression
+        self.temp_path = "export"
         self.connection = None
         self.compression = compression
 
@@ -132,25 +132,26 @@ class Exporter(object):
 
     def dump(self):
         print_message("------------------------------------------------------------------------")
-        print_message("Dumping '%s@%s' database into '%s'" % (self.database, self.host, self.base_path))
+        print_message("Dumping '%s@%s' database into '%s'" % (self.database, self.host, self.temp_path))
         initial = time.time()
 
         self.connect()
-        if not os.path.exists(self.base_path): os.makedirs(self.base_path)
+        if not os.path.exists(self.temp_path):
+            os.makedirs(self.temp_path)
 
         try:
             self.dump_schema()
             self.dump_tables()
             self.compress(self.compression)
         finally:
-            shutil.rmtree(self.base_path, ignore_errors=True)
+            shutil.rmtree(self.temp_path, ignore_errors=True)
 
         final = time.time()
         delta = final - initial
         print_message("Finished dumping of database in %d seconds" % delta)
 
     def dump_schema(self):
-        file_path = os.path.join(self.base_path, "database.sql")
+        file_path = os.path.join(self.temp_path, "database.sql")
         file = open(file_path, "ab")
         self._write_file(file, "/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;\n\
 /*!40101 SET NAMES utf8 */;\n\
@@ -163,7 +164,8 @@ class Exporter(object):
             file.close()
 
     def _write_file(self, file, data, encoding="utf-8"):
-        if type(data) == legacy.UNICODE: data = data.encode(encoding)
+        if type(data) == legacy.UNICODE:
+            data = data.encode(encoding)
         file.write(data)
 
     def _dump_schema(self, file):
@@ -257,7 +259,7 @@ class Exporter(object):
         # completion for the current process
         tables_l = len(tables)
         index = 1
-        file_path = os.path.join(self.base_path, "database.sql")
+        file_path = os.path.join(self.temp_path, "database.sql")
         file = open(file_path, "ab")
 
         for table in tables:
@@ -318,27 +320,23 @@ class Exporter(object):
         file.truncate()
         self._write_file(file, ";\n\n")
 
-    def compress(self, compression='gz'):
+    def compress(self, target=None, compression='gz'):
+        target = target or self.file_path
         print_message("Compressing database information into database.sql.%s..." % compression)
         initial = time.time()
 
-        if compression == 'zip':
-            zip = zipfile.ZipFile('database.sql.zip', "w", zipfile.ZIP_DEFLATED)
-            try:
-                root_l = len(self.base_path) + 1
-                for base, _dirs, files in os.walk(self.base_path):
-                    for file in files:
-                        path = os.path.join(base, file)
-                        zip.write(path, path[root_l:])
-            finally:
-                zip.close()
-        # gzip comrpession support
-        elif compression == 'gz':
-            for base, _dirs, files in os.walk(self.base_path):
-                for file in files:
+        for base, _dirs, files in os.walk(self.temp_path):
+            for file in files:
+                # gzip comrpession support
+                if compression == 'gz':
                     with open(os.path.join(base, file), 'rb') as inputdata:
-                        with gzip.open('database.sql.gz', 'w') as output:
+                        with gzip.open(target, 'w') as output:
                             shutil.copyfileobj(inputdata, output)
+                if compression == 'zip':
+                    with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as zipArchive:
+                        root_l = len(self.temp_path) + 1
+                        path = os.path.join(base, file)
+                        zipArchive.write(path, path[root_l:])
 
         final = time.time()
         delta = final - initial
@@ -377,17 +375,19 @@ def reset_line():
 
 def print_message(message, newline=True):
     # @todo make this a generic service instead of MySQL Dump
-    if QUIET: return
+    if QUIET:
+        return
     sys.stdout.write(message)
     newline and sys.stdout.write("\n")
 
 
-def dump(database, host=None, user=None, password=None, compression='gz'):
+def dump(database, host=None, user=None, password=None, file_path=None, compression='gz'):
     exporter = Exporter(
         database,
         host=host,
         user=user,
         password=password,
+        file_path=file_path,
         compression=compression
     )
     exporter.dump()
@@ -403,7 +403,7 @@ def information():
 def help():
     print_message("Usage:")
     print_message("mysql_dump [--quiet] [--help] [--host=] [--user=] [--password=]\n\
-    [--database=] [--file=]")
+    [--database=] [--file=], [--compression=]")
 
 
 def _escape(value):
@@ -421,14 +421,15 @@ def main():
     # parses the various options from the command line and then
     # iterates over the map of them top set the appropriate values
     # for the variables associated with the options
-    _options, _arguments = getopt.getopt(sys.argv[1:], "hqd:h:u:p:f:", [
+    _options, _arguments = getopt.getopt(sys.argv[1:], "hqd:h:u:p:f:c:", [
         "help",
         "quiet",
         "database=",
         "host=",
         "user=",
         "password=",
-        "file="
+        "file=",
+        "compression="
     ])
     for option, argument in _options:
         if option in ("-h", "--help"):
