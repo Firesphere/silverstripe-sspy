@@ -16,7 +16,6 @@ if os.path.isfile(Path(os.getcwd()) / '.env'):
 
 
 def main(arg, action, options):
-    print(arg)
     start = time.time()
     basepath = os.getcwd()
     # @todo use TarGZStream to stream directly in to the tarfile, omitting the need for removing the files

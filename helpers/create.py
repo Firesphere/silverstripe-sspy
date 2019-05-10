@@ -38,8 +38,8 @@ class Create:
         mysqldump.print_message("Finished creating assets tar in %d seconds" % delta)
 
     def sspak(self, file, basepath):
-        mysqldump.print_message("------------------------------------------------------------------------")
-        mysqldump.print_message("Generating %s" % file)
+        print("------------------------------------------------------------------------")
+        print("Generating %s" % file)
         with tarfile.open(file, "w") as tar:
             if os.path.isfile(os.path.join(basepath, 'database.sql.gz')):
                 tar.add('database.sql.gz')
