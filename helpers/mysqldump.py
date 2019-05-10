@@ -326,6 +326,10 @@ class Exporter(object):
         print_message("Compressing database information into database.sql.%s..." % compression)
         initial = time.time()
 
+        # Make sure the compression extension is in the file name
+        if "." + compression not in target:
+            target = target + "." + compression
+
         for base, _dirs, files in os.walk(self.temp_path):
             for file in files:
                 # gzip compression support

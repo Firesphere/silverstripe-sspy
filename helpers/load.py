@@ -50,12 +50,11 @@ class Load:
                             print(e)
                             exit(255)
                         i += 1
-                        if i < len(queries):
-                            sys.stdout.write("\r%s" % (80 * " "))
+                        sys.stdout.write("\r%s" % (80 * " "))
                     conn.commit()
                     # Create a newline at the end to not break other messages
-                    sys.stdout.write("\n")
-                    print('------------------------------------------------------------------------\n')
+                    sys.stdout.write("\nFinished %s queries" % i)
+                    print('------------------------------------------------------------------------')
 
     def assets(self, basedir):
         workingdir = basedir
