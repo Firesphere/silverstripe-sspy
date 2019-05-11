@@ -2,14 +2,16 @@ import os
 import tarfile
 import time
 
-from helpers import mysqldump
+from sspy import mysqldump
 
 
 class Create:
 
-    def create(self):
-        self.database()
-        self.assets()
+    def create(self, db, assets):
+        if not db:
+            self.database()
+        if not assets:
+            self.assets()
 
     def database(self):
         mysqldump.dump(os.getenv('SS_DATABASE_NAME'), os.getenv('SS_DATABASE_SERVER'),

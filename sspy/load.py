@@ -4,7 +4,7 @@ import tarfile
 import warnings
 import pymysql
 import sys
-from helpers import mysqldump
+from sspy import mysqldump
 
 class Load:
 
