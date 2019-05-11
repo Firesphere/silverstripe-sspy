@@ -31,7 +31,8 @@ This script should always be run from the webroot of the site
     --assets=|-a 
                  Optional, path to existing assets file, e.g. --assets=myassets.tar.gz or -a myassets.tar.gz to create the sspak from existing sources
                  (note, no = sign for the shorthand!
-    ---------------------------------------------------------------------------------------------------------
+
+----------
     --webroot=|-w 
                   Optional, relative path from the current location to the webroot
 
@@ -57,6 +58,8 @@ This script should always be run from the webroot of the site
 |--db     |Path to the database sql.gz file to create from existing|None   |No      |
 |--assets |Path to the assets tar.gz file to create from existing  |None   |No      |
 |--webroot|Relative path to the webroot from the current location  |.      |No      |
+
+
 
 Shorthands are available, instead of `--file` you can use `-f`, instead of `--db` you can use `-d` and instead of `--assets` you can use `-a` and instead of `--webroot` you can use `-w`
 

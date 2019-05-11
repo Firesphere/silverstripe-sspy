@@ -3,7 +3,7 @@
 *.zip
 /venv
 /.idea
-database.sql.gz
-assets.tar.gz
+/*.sql.gz
+/*.tar.gz
 /assets
-package.sspak
+*.sspak

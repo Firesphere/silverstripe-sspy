@@ -1,19 +1,18 @@
 import gzip
 import os
+import sys
 import tarfile
 import warnings
+
 import pymysql
-import sys
-from sspy import mysqldump
+
 
 class Load:
 
     def load(self, sspak, basepath):
-        mysqldump.print_message("Extracting sspak %s" % sspak)
         self.extract(sspak)
         self.database()
         self.assets(basepath)
-
 
     def database(self):
         print('------------------------------------------------------------------------')
@@ -54,9 +53,12 @@ class Load:
                     conn.commit()
                     # Create a newline at the end to not break other messages
                     sys.stdout.write("\nFinished %s queries" % i)
-                    print('------------------------------------------------------------------------')
+        conn.close()
+        print('------------------------------------------------------------------------')
 
     def assets(self, basedir):
+        print('------------------------------------------------------------------------')
+        print("Extracting assets")
         workingdir = basedir
         # If the public folder exist, use that one
         if os.path.isdir('public'):
@@ -67,5 +69,7 @@ class Load:
             tar.extractall(path=os.path.join(workingdir, "assets/"))
 
     def extract(self, file):
+        print('------------------------------------------------------------------------')
+        print("Extracting sspak")
         with tarfile.open(file, 'r') as tar:
             tar.extractall()
