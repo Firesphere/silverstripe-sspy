@@ -1,4 +1,5 @@
 import os
+import sys
 import tarfile
 import time
 
@@ -31,13 +32,13 @@ class Create:
             os.chdir(workingdir)
             mysqldump.print_message("Adding files from '%s' to assets tar. This might take a while" % workingdir)
             # Add all files in working dir
-            tar.add('.')
+            tar.add('.', filter=filter_output)
             # Go back to base or things will break
             os.chdir(basedir)
 
         final = time.time()
         delta = final - initial
-        mysqldump.print_message("Finished creating assets tar in %d seconds" % delta)
+        print("\nFinished creating assets tar in %d seconds" % delta)
 
     def sspak(self, file, basepath):
         print("------------------------------------------------------------------------")
@@ -47,3 +48,9 @@ class Create:
                 tar.add('database.sql.gz')
             if os.path.isfile(os.path.join(basepath, 'assets.tar.gz')):
                 tar.add('assets.tar.gz')
+
+
+def filter_output(output):
+    sys.stdout.write("\r%s" % (100 * " "))
+    sys.stdout.write("\radding %s" % output.name)
+    return output

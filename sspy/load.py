@@ -26,6 +26,9 @@ class Load:
         )
         with gzip.open('database.sql.gz', 'r') as database:
             queries = database.read().decode()
+            queries = queries.split(";\n")
+            i = 1
+            sys.stdout.write("Running %s queries\n" % len(queries))
             with warnings.catch_warnings():
                 # suppress warnings from the database about keys and such. They're not elephant
                 warnings.simplefilter("ignore")
@@ -35,9 +38,6 @@ class Load:
                     # because that'll cause content having ; in them to break catastrophically
                     # luckily, the content plus newline is outputted as a string `;\n` instead
                     # of an actual newline
-                    queries = queries.split(";\n")
-                    i = 1
-                    sys.stdout.write("Running %s queries\n" % len(queries))
                     for q in queries:
                         query_parts = q.split('`')
                         try:

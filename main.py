@@ -60,6 +60,8 @@ def display_help():
           "sspy [create|load|extract] (db|assets) --file=my.sspak --db=mydb.tar.gz --assets=myassets.tar.gz\n"
           "the db and assets commands are optional.")
     print("This script should always be run from the webroot of the site")
+    print("---------------------------------------------------------------------------------------------------------"
+          "-------------------------------------------")
     print("Arguments:")
     print("create")
     print("       db     Only create a database snapshot")
@@ -67,9 +69,11 @@ def display_help():
     print("       none   Create a full snapshot")
     print("load")
     print("       No arguments required, it detects if there is a database or assets")
-    print("       Warning: No of database or assets will be created!")
+    print("       Warning: No backup of database or assets will be created!")
     print("extract")
     print("       No arguments required. The SSPAK file will be extracted in to database.sql.gz and assets.tar.gz")
+    print("---------------------------------------------------------------------------------------------------------"
+          "-------------------------------------------")
     print("Parameters")
     print("--file=|-f ")
     print("             Required, path to the sspak. E.g. --file=my.sspak or -f my.sspak")
@@ -104,7 +108,7 @@ if __name__ == '__main__':
     opts, args = getopt.getopt(optargs, "d:a:f:w:", ['db=', 'assets=', 'file=', 'webroot='])
 
     for (opt, arg) in opts:
-        if ('-w', '--webroot=') in opt:
+        if opt in ('-w', '--webroot='):
             os.chdir(os.path.join(os.getcwd(), arg))
 
     if os.path.isfile(os.path.join(os.getcwd(), '.env')):

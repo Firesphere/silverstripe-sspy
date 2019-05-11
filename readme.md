@@ -17,7 +17,7 @@ This script should always be run from the webroot of the site
            none   Create a full snapshot
     load
            No arguments required, it detects if there is a database or assets
-           Warning: No of database or assets will be created!
+           Warning: No backup of database or assets will be created!
     extract
            No arguments required. The SSPAK file will be extracted in to database.sql.gz and assets.tar.gz
 ### Parameters
