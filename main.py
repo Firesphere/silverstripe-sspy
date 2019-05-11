@@ -91,7 +91,6 @@ def display_help():
           "-------------------------------------------\n"
           "--webroot=|-w \n"
           "              Optional, relative path from the current location to the webroot\n")
-    exit(0)
 
 
 if __name__ == '__main__':
@@ -103,6 +102,7 @@ if __name__ == '__main__':
             display_help()
             exit(255)
         display_help()
+        exit(0)
     if sys.argv[2] in ['db', 'assets'] and sys.argv[1] == 'create':
         optargs = sys.argv[3:]
         action_type = sys.argv[2]

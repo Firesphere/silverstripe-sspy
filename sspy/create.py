@@ -41,13 +41,23 @@ class Create:
         print("\nFinished creating assets tar in %d seconds" % delta)
 
     def sspak(self, file, basepath):
+        initial = time.time()
         print("------------------------------------------------------------------------")
         print("Generating %s" % file)
         with tarfile.open(file, "w") as tar:
             if os.path.isfile(os.path.join(basepath, 'database.sql.gz')):
+                print("Adding database.sql.gz")
                 tar.add('database.sql.gz')
+                final = time.time()
+                delta = final - initial
+                print("Finished adding database in %d seconds" % delta)
             if os.path.isfile(os.path.join(basepath, 'assets.tar.gz')):
+                print("adding assets.tar.gz")
                 tar.add('assets.tar.gz')
+                final = time.time()
+                delta = final - initial
+                print("Finished adding assets in %d seconds" % delta)
+        print("------------------------------------------------------------------------")
 
 
 def filter_output(output):
