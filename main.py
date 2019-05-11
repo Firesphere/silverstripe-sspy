@@ -3,7 +3,7 @@ import os
 import shutil
 import sys
 import time
-
+import datetime
 import dotenv
 
 from sspy.create import Create
@@ -13,6 +13,7 @@ from sspy.load import Load
 
 def main(arg, action, options):
     start = time.time()
+    print("Starting sspak operation at %s" % datetime.datetime.now())
     basepath = os.getcwd()
     file = None
     assets = False
@@ -54,6 +55,7 @@ def main(arg, action, options):
     delta = end - start
     print('------------------------------------------------------------------------')
     print("Finished sspak operation in %d seconds" % delta)
+    print("Time: %s" % datetime.datetime.now())
 
 
 def display_help():
@@ -78,15 +80,15 @@ def display_help():
           "Parameters\n"
           "--file=|-f \n"
           "             Required, path to the sspak. E.g. --file=my.sspak or -f my.sspak\n"
-          "             (note, no = sign for the shorthand!\n"
+          "             (note, no = sign for the shorthand!)\n"
           "--db=|-d \n"
           "             Optional, path to existing database file, e.g. --db=mydatabase.sql.gz or -d mydatabase.sql.gz"
           " to create the sspak from existing sources\n"
-          "             (note, no = sign for the shorthand!\n"
+          "             (note, no = sign for the shorthand!)\n"
           "--assets=|-a \n"
           "             Optional, path to existing assets file, e.g. --assets=myassets.tar.gz or -a myassets.tar.gz"
           " to create the sspak from existing sources\n"
-          "             (note, no = sign for the shorthand!\n"
+          "             (note, no = sign for the shorthand!)\n"
           "---------------------------------------------------------------------------------------------------------"
           "-------------------------------------------\n"
           "--webroot=|-w \n"

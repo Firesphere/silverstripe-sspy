@@ -72,6 +72,15 @@ The file name can be anything, but will be appended with `.sspak` if the file na
 **CAUTION**
 Not providing a unique file name, might cause a single sspak to be loaded with the same files over and over, appending data to them instead of replacing!
 
+# Building
+
+For Windows 10, using PyInstaller, make sure the [Windows SDK libraries](https://dev.windows.com/en-us/downloads/windows-10-sdk) are installed and add the libraries to your path.
+
+`set PATH=%PATH%;C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x86`
+`set PATH=%PATH%;C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64`
+
+To build, run `pyinstaller sspy.spec` (On your preferred platform)
+
 # Attributions
 
 - João Magalhães - The original MySQL Dump library which has been altered to fit our needs and have a bit more flexibility overall
