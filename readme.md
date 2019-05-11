@@ -7,7 +7,7 @@
           
 the db and assets commands are optional.
 
-This script should always be run from the webroot of the site
+This script should preferably be run from the webroot of the site
 
 ### Arguments:
 
