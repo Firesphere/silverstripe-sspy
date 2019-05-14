@@ -9,7 +9,7 @@ import dotenv
 from sspy.create import Create
 from sspy.files import Files
 from sspy.load import Load
-
+from sspy.listtables import ListTables
 
 def main(arg, action, options):
     start = time.time()
@@ -18,6 +18,7 @@ def main(arg, action, options):
     file = None
     assets = False
     db = False
+    clean = True
     for (ar, f) in options:
         if ar in ('-f', '--file'):
             file = f
@@ -30,7 +31,7 @@ def main(arg, action, options):
                 shutil.copy2(f, 'assets.tar.gz')
                 assets = True
     # Make sure the filename ends with `.sspak`
-    if '.sspak' not in file:
+    if arg != 'showtables' and '.sspak' not in file:
         file += '.sspak'
     if arg == 'create':
         if action == 'db' and not db:
@@ -44,8 +45,13 @@ def main(arg, action, options):
         Load().load(file, basepath)
     if arg == 'extract':
         Load().extract(file)
+        clean = False
+    if arg == 'showtables':
+        lt = ListTables()
+        lt.show_tables()
+        clean = False
 
-    if arg != 'extract':
+    if clean:
         print('Cleaning up, if this takes a long time, feel free to CTRL-C this process')
         deleted = False
         while deleted is False:

@@ -260,40 +260,39 @@ class Exporter(object):
         tables_l = len(tables)
         index = 1
         file_path = os.path.join(self.temp_path, "database.sql")
-        file = open(file_path, "ab")
+        with open(file_path, "ab") as file:
 
-        for table in tables:
-            reset_line()
-            print_message("\r[%d/%d] - %s" % (index, tables_l, table), False)
-            count = self.fetch_one("SELECT COUNT(`ID`) FROM `%s`" % table)
+            for table in tables:
+                reset_line()
+                print_message("\r[%d/%d] - %s" % (index, tables_l, table), False)
+                count = self.fetch_one("SELECT COUNT(`ID`) FROM `%s`" % table)
 
-            if count[0] > 0:
-                i = 0
-                columns = self.fetch_single(
-                    "SELECT `column_name` FROM `information_schema`.`columns` "
-                    "WHERE `table_schema` = '%s' AND `table_name` = '%s'" %
-                    (self.database, table)
-                )
-                columns_s = "`, `".join(columns)
-                self._write_file(file, "DELETE FROM `%s`;\n" % table)
-                self._write_file(file, "/*!40000 ALTER TABLE `%s` DISABLE KEYS */;\n" % table)
-                self._write_file(file, "/*!40000 ALTER TABLE `%s` ENABLE KEYS */;\n\n" % table)
-                while i <= count[0]:
-                    data = self.fetch_all(
-                        "SELECT `%s` FROM `%s` LIMIT 1024 OFFSET %s" % (columns_s, table, int(i))
+                if count[0] > 0:
+                    i = 0
+                    columns = self.fetch_single(
+                        "SELECT `column_name` FROM `information_schema`.`columns` "
+                        "WHERE `table_schema` = '%s' AND `table_name` = '%s'" %
+                        (self.database, table)
                     )
-                    self._write_file(file, "INSERT INTO `%s` (`%s`) VALUES \n" % (table, columns_s))
-                    self.dump_data(file, data)
-                    i = i + 1024
-            index += 1
+                    columns_s = "`, `".join(columns)
+                    self._write_file(file, "DELETE FROM `%s`;\n" % table)
+                    self._write_file(file, "/*!40000 ALTER TABLE `%s` DISABLE KEYS */;\n" % table)
+                    self._write_file(file, "/*!40000 ALTER TABLE `%s` ENABLE KEYS */;\n\n" % table)
+                    while i <= count[0]:
+                        data = self.fetch_all(
+                            "SELECT `%s` FROM `%s` LIMIT 1024 OFFSET %s" % (columns_s, table, int(i))
+                        )
+                        self._write_file(file, "INSERT INTO `%s` (`%s`) VALUES \n" % (table, columns_s))
+                        self.dump_data(file, data)
+                        i = i + 1024
+                index += 1
 
-        # Reset the SQL Modes to what it's supposed to be :)
-        self._write_file(file, "/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;\n"
-                               "/*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1,"
-                               " @OLD_FOREIGN_KEY_CHECKS) */;\n"
-                               "/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;")
+            # Reset the SQL Modes to what it's supposed to be :)
+            self._write_file(file, "/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;\n"
+                                   "/*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1,"
+                                   " @OLD_FOREIGN_KEY_CHECKS) */;\n"
+                                   "/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;")
 
-        file.close()
         final = time.time()
         delta = final - initial
         reset_line()
