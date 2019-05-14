@@ -1,15 +1,17 @@
+import datetime
 import getopt
 import os
 import shutil
 import sys
 import time
-import datetime
+
 import dotenv
 
 from sspy.create import Create
 from sspy.files import Files
-from sspy.load import Load
 from sspy.listtables import ListTables
+from sspy.load import Load
+
 
 def main(arg, action, options):
     start = time.time()
