@@ -9,3 +9,4 @@
 *.sspak
 /build
 /dist
+__pycache__

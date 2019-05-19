@@ -75,14 +75,16 @@ def display_help():
           "-------------------------------------------\n"
           "Arguments:\n"
           "create\n"
-          "       db     Only create a database snapshot\n"
-          "       assets Only create an assets snapshot\n"
-          "       none   Create a full snapshot\n"
+          "            db     Only create a database snapshot\n"
+          "            assets Only create an assets snapshot\n"
+          "            none   Create a full snapshot\n"
           "load\n"
-          "       No arguments required, it detects if there is a database or assets\n"
-          "       Warning: No backup of database or assets will be created!\n"
+          "            No arguments required, it detects if there is a database or assets\n"
+          "            Warning: No backup of database or assets will be created!\n"
           "extract\n"
-          "       No arguments required. The SSPAK file will be extracted in to database.sql.gz and assets.tar.gz\n"
+          "            No arguments required. The SSPAK file will be extracted to database.sql.gz and assets.tar.gz\n"
+          "showtables\n"
+          "            Show database tables and amount of items in the table"
           "---------------------------------------------------------------------------------------------------------"
           "-------------------------------------------\n"
           "Parameters\n"
@@ -100,7 +102,8 @@ def display_help():
           "---------------------------------------------------------------------------------------------------------"
           "-------------------------------------------\n"
           "--webroot=|-w \n"
-          "              Optional, relative path from the current location to the webroot\n")
+          "              Optional, relative path from the current location to the webroot\n"
+          "              NOT optional for the sowtables feature")
 
 
 if __name__ == '__main__':
